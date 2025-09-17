@@ -167,7 +167,8 @@
             overflow: hidden;
         }
         body.fullscreen-active .header,
-        body.fullscreen-active .progress-container {
+        body.fullscreen-active .progress-container,
+        body.fullscreen-active .fab-container { /* Ocultar FABs en pantalla completa */
             display: none;
         }
         .fullscreen-mode {
@@ -631,6 +632,19 @@
             background: #f5f5f5;
             border-top: 2px solid #e0e0e0;
         }
+        
+        /* Contenedores para botones de control */
+        .slide-controls-left, .slide-controls-center, .slide-controls-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slide-controls-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
 
         .btn {
             padding: 12px 30px;
@@ -643,6 +657,20 @@
             align-items: center;
             gap: 10px;
             font-weight: 500;
+        }
+        
+        .btn-icon {
+            padding: 12px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: var(--dark-color);
+            border: none;
+            line-height: 1;
+            font-size: 1rem;
+        }
+
+        .btn-icon:hover {
+            background: #d1d1d1;
         }
         
         .btn-lg {
@@ -674,11 +702,6 @@
         .btn-success {
             background: linear-gradient(135deg, var(--success-color), #66BB6A);
             color: white;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, var(--accent-color), #FFB300);
-            color: var(--dark-color);
         }
         
         .btn-accent {
@@ -813,7 +836,7 @@
             to { opacity: 1; }
         }
 
-        /* Floating Action Buttons */
+        /* Floating Action Buttons RESTAURADOS */
         .fab-container {
             position: fixed;
             bottom: 30px;
@@ -821,8 +844,8 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            z-index: 1050; 
-            transform: translateZ(0); 
+            z-index: 1050;
+            transform: translateZ(0);
         }
 
         .fab {
@@ -1155,6 +1178,7 @@
             .fab i {
                 font-size: 20px;
             }
+
 
             .tabs {
                 flex-direction: column;
@@ -1646,27 +1670,34 @@
 
             <!-- Slide Controls -->
             <div class="slide-controls no-print">
-                <button id="prevBtn" class="btn btn-secondary" onclick="previousSlide()">
-                    <i class="fas fa-chevron-left"></i> Anterior
-                </button>
-                <div>
+                 <div class="slide-controls-left">
+                    <button id="prevBtn" class="btn btn-secondary" onclick="previousSlide()">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+                </div>
+                <div class="slide-controls-center">
                     <span id="slideIndicator">1 / 14</span>
                 </div>
-                <button id="nextBtn" class="btn btn-primary" onclick="nextSlide()">
-                    Siguiente <i class="fas fa-arrow-right"></i>
-                </button>
+                <div class="slide-controls-right">
+                     <button id="fullscreen-control-btn" class="btn btn-icon" onclick="toggleFullscreen()" title="Pantalla Completa">
+                         <i class="fas fa-expand"></i>
+                     </button>
+                    <button id="nextBtn" class="btn btn-primary" onclick="nextSlide()">
+                        Siguiente <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Floating Action Buttons -->
+    
+    <!-- Floating Action Buttons RESTAURADOS -->
     <div class="fab-container no-print">
         <div class="fab" onclick="openModal()">
             <span class="fab-label">Ayuda</span>
             <i class="fas fa-question"></i>
         </div>
         <div class="fab" onclick="downloadCourseAsPdf()" style="background: linear-gradient(135deg, #4CAF50, #8BC34A);">
-            <span class="fab-label">Descargar Material en PDF</span>
+            <span class="fab-label">Descargar Material</span>
             <i class="fas fa-file-pdf"></i>
         </div>
         <div class="fab" onclick="scrollToTop()" style="background: linear-gradient(135deg, #2196F3, #03A9F4);">
@@ -1678,6 +1709,7 @@
             <i class="fas fa-expand"></i>
         </div>
     </div>
+
 
     <!-- Modal -->
     <div id="helpModal" class="modal">
@@ -1745,15 +1777,18 @@
             
             const prevButton = document.getElementById('prevBtn');
             const nextButton = document.getElementById('nextBtn');
+            const fullscreenButton = document.getElementById('fullscreen-control-btn');
             
             prevButton.style.visibility = currentSlide === 0 ? 'hidden' : 'visible';
 
             if (currentSlide === totalSlides - 1) {
                 nextButton.innerHTML = 'Finalizar <i class="fas fa-times-circle"></i>';
-                nextButton.onclick = () => { if (document.fullscreenElement) { document.exitFullscreen(); } };
+                nextButton.onclick = toggleFullscreen;
+                fullscreenButton.style.display = 'none';
             } else {
                 nextButton.innerHTML = 'Siguiente <i class="fas fa-arrow-right"></i>';
                 nextButton.onclick = nextSlide;
+                fullscreenButton.style.display = 'inline-flex';
             }
 
             updateNavigation();
@@ -1784,31 +1819,24 @@
             const container = document.getElementById('mainContainer');
             const isMobile = window.innerWidth <= 768; // Criterio para detectar móvil
 
-            // Verifica si está en modo pantalla completa (nativo o simulado)
             const isInFullscreen = document.fullscreenElement || container.classList.contains('fullscreen-mode');
 
             if (!isInFullscreen) {
-                // Entrar a pantalla completa
                 if (isMobile) {
-                    // Simular para móviles
                     document.body.classList.add('fullscreen-active');
                     container.classList.add('fullscreen-mode');
                     updateFullscreenButton(true);
                 } else {
-                    // Nativo para escritorio
                     container.requestFullscreen().catch(err => {
                         console.error(`Error al intentar activar pantalla completa: ${err.message}`);
                     });
                 }
             } else {
-                // Salir de pantalla completa
                 if (isMobile && !document.fullscreenElement) {
-                     // Salir del modo simulado en móvil
                     document.body.classList.remove('fullscreen-active');
                     container.classList.remove('fullscreen-mode');
                     updateFullscreenButton(false);
                 } else {
-                    // Salir del modo nativo en escritorio
                     if (document.exitFullscreen) {
                         document.exitFullscreen();
                     }
@@ -1817,20 +1845,20 @@
         }
 
         function updateFullscreenButton(isFs) {
+            const control_btn_icon = document.querySelector('#fullscreen-control-btn i');
             const fab_btn_icon = document.querySelector('#fab-fullscreen i');
-            
             const iconClass = isFs ? 'fa-compress' : 'fa-expand';
             
-            if(fab_btn_icon){
+            if(control_btn_icon){
+                control_btn_icon.className = `fas ${iconClass}`;
+            }
+             if(fab_btn_icon){
                 fab_btn_icon.className = `fas ${iconClass}`;
             }
         }
         
-        // El listener nativo se mantiene para cambios de estado (ej: tecla ESC en escritorio)
         document.addEventListener('fullscreenchange', () => {
             const isFs = !!document.fullscreenElement;
-            // Solo actualiza las clases si el cambio vino del API nativo.
-            // La lógica manual para móvil ya maneja sus propias clases.
             document.body.classList.toggle('fullscreen-active', isFs);
             document.getElementById('mainContainer').classList.toggle('fullscreen-mode', isFs);
             updateFullscreenButton(isFs);
