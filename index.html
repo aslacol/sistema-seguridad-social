@@ -1101,14 +1101,23 @@
                 margin-bottom: 10px;
             }
             .nav-menu {
-                flex-wrap: wrap;
-                gap: 5px;
-                justify-content: center;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                justify-content: flex-start;
+                width: 100%;
+                padding-bottom: 10px;
+                scrollbar-width: none; /* Para Firefox */
+            }
+
+            .nav-menu::-webkit-scrollbar {
+                display: none; /* Ocultar scrollbar en Chrome/Safari */
             }
 
             .nav-item {
                 font-size: 0.8rem;
                 padding: 5px 10px;
+                flex-shrink: 0; /* Evita que los items se encojan */
             }
 
             .slide {
@@ -1273,9 +1282,6 @@
             <a class="nav-item" onclick="goToSlide(11)"><i class="fas fa-question-circle"></i> Quiz</a>
             <a class="nav-item" onclick="goToSlide(12)"><i class="fas fa-award"></i> Certificado</a>
             <a class="nav-item" onclick="goToSlide(13)"><i class="fas fa-envelope"></i> Contacto</a>
-            <button class="fullscreen-btn" onclick="toggleFullscreen()">
-                <i class="fas fa-expand"></i> Pantalla Completa
-            </button>
         </nav>
     </header>
 
@@ -1637,6 +1643,10 @@
             <span class="fab-label">Ir arriba</span>
             <i class="fas fa-arrow-up"></i>
         </div>
+        <div class="fab" id="fab-fullscreen" onclick="toggleFullscreen()" style="background: linear-gradient(135deg, #673AB7, #9575CD);">
+            <span class="fab-label">Pantalla Completa</span>
+            <i class="fas fa-expand"></i>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -1739,22 +1749,69 @@
             if(activeIndex !== -1) navItems[activeIndex].classList.add('active');
         }
 
-        // Pantalla completa
+        // --- INICIO DE CÓDIGO CORREGIDO PARA PANTALLA COMPLETA ---
         function toggleFullscreen() {
             const container = document.getElementById('mainContainer');
-            if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
+            const isMobile = window.innerWidth <= 768; // Criterio para detectar móvil
+
+            // Verifica si está en modo pantalla completa (nativo o simulado)
+            const isInFullscreen = document.fullscreenElement || container.classList.contains('fullscreen-mode');
+
+            if (!isInFullscreen) {
+                // Entrar a pantalla completa
+                if (isMobile) {
+                    // Simular para móviles
+                    document.body.classList.add('fullscreen-active');
+                    container.classList.add('fullscreen-mode');
+                    updateFullscreenButton(true);
+                } else {
+                    // Nativo para escritorio
+                    container.requestFullscreen().catch(err => {
+                        console.error(`Error al intentar activar pantalla completa: ${err.message}`);
+                    });
+                }
             } else {
-                document.exitFullscreen();
+                // Salir de pantalla completa
+                if (isMobile && !document.fullscreenElement) {
+                     // Salir del modo simulado en móvil
+                    document.body.classList.remove('fullscreen-active');
+                    container.classList.remove('fullscreen-mode');
+                    updateFullscreenButton(false);
+                } else {
+                    // Salir del modo nativo en escritorio
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            }
+        }
+
+        function updateFullscreenButton(isFs) {
+            const btn = document.querySelector('.fullscreen-btn');
+            const fab_btn_icon = document.querySelector('#fab-fullscreen i');
+            
+            const iconClass = isFs ? 'fa-compress' : 'fa-expand';
+            const text = isFs ? ' Salir' : ' Pantalla Completa';
+
+            if (btn) {
+                btn.innerHTML = `<i class="fas ${iconClass}"></i>${text}`;
+            }
+            if(fab_btn_icon){
+                fab_btn_icon.className = `fas ${iconClass}`;
             }
         }
         
+        // El listener nativo se mantiene para cambios de estado (ej: tecla ESC en escritorio)
         document.addEventListener('fullscreenchange', () => {
             const isFs = !!document.fullscreenElement;
+            // Solo actualiza las clases si el cambio vino del API nativo.
+            // La lógica manual para móvil ya maneja sus propias clases.
             document.body.classList.toggle('fullscreen-active', isFs);
             document.getElementById('mainContainer').classList.toggle('fullscreen-mode', isFs);
-            document.querySelector('.fullscreen-btn').innerHTML = isFs ? '<i class="fas fa-compress"></i> Salir' : '<i class="fas fa-expand"></i> Pantalla Completa';
+            updateFullscreenButton(isFs);
         });
+        // --- FIN DE CÓDIGO CORREGIDO ---
+
 
         // Acordeones y Tabs
         function toggleAccordion(header) { header.parentElement.classList.toggle('active'); }
@@ -1882,7 +1939,13 @@
             if (e.target.tagName === 'INPUT') return;
             if (e.key === 'ArrowRight') nextSlide();
             else if (e.key === 'ArrowLeft') previousSlide();
-            else if (e.key === 'Escape') closeModal();
+            else if (e.key === 'Escape') {
+                closeModal();
+                // Salir del modo simulado en móvil con la tecla ESC
+                if (document.body.classList.contains('fullscreen-active') && !document.fullscreenElement) {
+                    toggleFullscreen();
+                }
+            }
         });
     </script>
 </body>
