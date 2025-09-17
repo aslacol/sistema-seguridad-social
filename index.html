@@ -305,23 +305,7 @@
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
         }
-
-        .fullscreen-btn {
-            background: var(--accent-color);
-            color: var(--dark-color);
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .fullscreen-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
-        }
-
+        
         /* Progress Bar */
         .progress-container {
             position: fixed;
@@ -1187,6 +1171,52 @@
             }
         }
 
+        /* --- INICIO DE NUEVOS ESTILOS PARA ORIENTACIÓN HORIZONTAL --- */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .container {
+                margin-top: 80px; /* Reducir margen superior para dar más espacio */
+                margin-bottom: 20px;
+                padding: 10px;
+            }
+
+            .slides-container {
+                min-height: 0; /* Permite que el contenedor se encoja */
+                max-height: calc(100vh - 100px); /* Ajusta la altura máxima para el nuevo margen */
+            }
+            
+            .slide {
+                padding: 20px; /* Menos padding para maximizar espacio */
+            }
+
+            .slide-header-image {
+                height: 120px; /* Reduce la altura de la imagen de cabecera */
+                margin-bottom: 15px;
+            }
+
+            .slide-title {
+                font-size: 1.5rem; /* Títulos más pequeños */
+            }
+
+            .slide-subtitle {
+                font-size: 1rem;
+            }
+
+            .cover-content {
+                padding: 20px; /* Menos padding en diapositivas de portada */
+                transform: scale(0.9); /* Hace el contenido un poco más pequeño */
+            }
+
+            .cover-slide h1 {
+                font-size: 2.2rem;
+            }
+
+            .fab-container {
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+        /* --- FIN DE NUEVOS ESTILOS PARA ORIENTACIÓN HORIZONTAL --- */
+
         /* Links Grid for Resources */
         .links-section {
             margin: 30px 0;
@@ -1787,15 +1817,10 @@
         }
 
         function updateFullscreenButton(isFs) {
-            const btn = document.querySelector('.fullscreen-btn');
             const fab_btn_icon = document.querySelector('#fab-fullscreen i');
             
             const iconClass = isFs ? 'fa-compress' : 'fa-expand';
-            const text = isFs ? ' Salir' : ' Pantalla Completa';
-
-            if (btn) {
-                btn.innerHTML = `<i class="fas ${iconClass}"></i>${text}`;
-            }
+            
             if(fab_btn_icon){
                 fab_btn_icon.className = `fas ${iconClass}`;
             }
