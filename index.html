@@ -1817,12 +1817,13 @@
         // --- INICIO DE CÓDIGO CORREGIDO PARA PANTALLA COMPLETA ---
         function toggleFullscreen() {
             const container = document.getElementById('mainContainer');
-            const isMobile = window.innerWidth <= 768; // Criterio para detectar móvil
+            // Detección mejorada para dispositivos táctiles
+            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
             const isInFullscreen = document.fullscreenElement || container.classList.contains('fullscreen-mode');
 
             if (!isInFullscreen) {
-                if (isMobile) {
+                if (isTouchDevice) {
                     document.body.classList.add('fullscreen-active');
                     container.classList.add('fullscreen-mode');
                     updateFullscreenButton(true);
@@ -1832,7 +1833,7 @@
                     });
                 }
             } else {
-                if (isMobile && !document.fullscreenElement) {
+                if (isTouchDevice && !document.fullscreenElement) {
                     document.body.classList.remove('fullscreen-active');
                     container.classList.remove('fullscreen-mode');
                     updateFullscreenButton(false);
